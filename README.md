@@ -1,4 +1,4 @@
-# Multichannel-Gray-Level-Co---Occurrence-Matrix
+# Multichannel-Gray-Level-Co-Occurrence-Matrix
 Python implementation of multichannel gray level co - occurrence matrix
 
 This function creates the multichannel gray level co - occurrence matrix (k - means clustering based) as described in the paper
