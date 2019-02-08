@@ -60,7 +60,7 @@ def mglcm_generation(input_filename, output_filename, cluster_size, window_size,
    
     for i in tqdm(range(buffer, img.shape[0] - buffer, 1), mininterval = 600) :            
         for j in range(buffer, img.shape[1] - buffer, 1) :                                                                                                                                   
-            array = quantized_padded[(i - buffer) : (i + buffer + 1), (j - buffer) : (j + buffer + 1)]
+            array = quantized_padded[(i - buffer) : (i + buffer + 1), (j - buffer) : (j + buffer + 1)].astype(int)
             glcm = greycomatrix(array, [displ_dist], [0, np.pi / 4, np.pi / 2, (3 / 4) * np.pi], levels = cluster_size, 
                                normed = True)
             contrast = greycoprops(glcm, prop = 'contrast')
