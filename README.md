@@ -8,8 +8,28 @@ X. Liu and L. Zhang (2014).
 Requirements:
 - numpy
 - pandas
-- gdal
+- rasterio
 - scipy
 - skimage
 - sklearn
 - tqdm
+
+Test Image (courtesy of USGS NAIP):
+
+![alt text](https://github.com/ThomasWangWeiHong/Multichannel-Gray-Level-Co---Occurrence-Matrix/blob/master/Test_Image.JPG)
+
+MGLCM Mean Contrast Image:
+
+![alt text](https://github.com/ThomasWangWeiHong/Multichannel-Gray-Level-Co---Occurrence-Matrix/blob/master/MGLCM_Mean_Contrast.JPG)
+
+MGLCM Mean Energy Image:
+
+![alt text](https://github.com/ThomasWangWeiHong/Multichannel-Gray-Level-Co---Occurrence-Matrix/blob/master/MGLCM_Mean_Energy.JPG)
+
+MGLCM Mean Homogeneity Image:
+
+![alt text](https://github.com/ThomasWangWeiHong/Multichannel-Gray-Level-Co---Occurrence-Matrix/blob/master/MGLCM_Mean_Homogeneity.JPG)
+
+MGLCM Mean Dissimilarity Image:
+
+![alt text](https://github.com/ThomasWangWeiHong/Multichannel-Gray-Level-Co---Occurrence-Matrix/blob/master/MGLCM_Mean_Dissimilarity.JPG)
