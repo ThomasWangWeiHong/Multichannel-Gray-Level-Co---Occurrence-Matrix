@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from osgeo import gdal
+import rasterio
 from scipy.stats import rankdata
 from skimage.feature import greycomatrix, greycoprops
 from sklearn.cluster import KMeans
@@ -26,9 +26,9 @@ def mglcm_generation(input_filename, output_filename, cluster_size, window_size,
     - displ_dist: Magnitude of displacement vector to be used for the GLCM calculation
     
     Outputs:
-    - glcm_measures: 
-    
-    
+    - glcm_measures: 3D numpy array which consists of the multichannel grey level co - occurence matrix, with each band 
+                     representing each different measure
+                     
     """
     
     if (window_size % 2 == 0) :
@@ -39,7 +39,11 @@ def mglcm_generation(input_filename, output_filename, cluster_size, window_size,
     
     buffer = int((window_size - 1) / 2)    
     
-    img = np.transpose(gdal.Open(input_filename).ReadAsArray(), [1, 2, 0])
+    
+    with rasterio.open(input_filename) as f:
+        metadata = f.profile
+        img = np.transpose(f.read(tuple(np.arange(metadata['count']) + 1)), [1, 2, 0])
+        
     img_2d = img.reshape(img.shape[0] * img.shape[1], img.shape[2])
     kmeans = KMeans(n_clusters = cluster_size, max_iter = 10000, random_state = 2018).fit(img_2d)
     img_total = np.sum(img, axis = 2)
@@ -53,10 +57,9 @@ def mglcm_generation(input_filename, output_filename, cluster_size, window_size,
     df_final = df.merge(df_inter_1, how = 'left', on = 'Labels')
     quantized = df_final.Quantized.values.reshape(img.shape[0], img.shape[1]) - 1
     
-    quantized_padded = np.zeros(((quantized.shape[0] + 2 * buffer), (quantized.shape[1] + 2 * buffer)))
-    quantized_padded[buffer : (buffer + quantized.shape[0]), buffer : (buffer + quantized.shape[1])] = quantized
+    quantized_padded = np.pad(quantized, ((buffer, buffer), (buffer, buffer)), mode = 'constant')
     
-    glcm_measures = np.zeros((img.shape[0], img.shape[1], 4))
+    glcm_measures = np.zeros((img.shape[0], img.shape[1], 4), dtype = np.float32)
    
     for i in tqdm(range(buffer, img.shape[0] - buffer, 1), mininterval = 600) :            
         for j in range(buffer, img.shape[1] - buffer, 1) :                                                                                                                                   
@@ -71,18 +74,11 @@ def mglcm_generation(input_filename, output_filename, cluster_size, window_size,
             glcm_measures[i - buffer, j - buffer, 1] = energy.mean()
             glcm_measures[i - buffer, j - buffer, 2] = homogeneity.mean()
             glcm_measures[i - buffer, j - buffer, 3] = dissimilarity.mean()
-                    
-    input_dataset = gdal.Open(input_filename)
-    input_band = input_dataset.GetRasterBand(1)
-    gtiff_driver = gdal.GetDriverByName('GTiff')
-    output_dataset = gtiff_driver.Create(output_filename, input_band.XSize, input_band.YSize, 4, gdal.GDT_Float32)
-    output_dataset.SetProjection(input_dataset.GetProjection())
-    output_dataset.SetGeoTransform(input_dataset.GetGeoTransform())
-    for i in range(1, 5):
-        output_dataset.GetRasterBand(i).WriteArray(glcm_measures[:, :, i - 1])    
-    output_dataset.FlushCache()
-    for i in range(1, 5):
-        output_dataset.GetRasterBand(i).ComputeStatistics(False)
-    del output_dataset
+    
+    
+    metadata['count'] = 4
+    metadata['dtype'] = 'float32'
+    with rasterio.open(output_filename, 'w', **metadata) as dst:
+        dst.write(np.transpose(glcm_measures, [2, 0, 1]))
     
     return glcm_measures
